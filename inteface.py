@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
+from tkinter import messagebox
+
 import subprocess
 
 
@@ -114,11 +116,24 @@ class Interface:
             bat_file.writelines(data)
 
     def run_bat(self):
-        if self.rd_variable.get() == 'Static':
-            self.get_static_variables()
-            subprocess.call([r'static_ip.bat'], shell=True)
-        else:
-            subprocess.call([r'dhcp_ip.bat'], shell=True)
+        ret = None
+        try:
+            if self.rd_variable.get() == 'Static':
+                self.get_static_variables()
+                ret = subprocess.run([r'static_ip.bat'], shell=True, text=True, capture_output=True)
+            if self.rd_variable.get() == 'DHCP':
+                ret = subprocess.run([r'dhcp_ip.bat'], shell=True, text=True, capture_output=True)
+
+            if ret.returncode != 0:
+                messagebox.showerror("Error", f"An unexpected error occurred: \n\n{ret.stdout}")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: \n\n{e}")
+
+        return ret
 
     def change_ip(self):
         self.run_bat()
+
+
+
